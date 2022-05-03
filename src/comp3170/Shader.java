@@ -36,6 +36,8 @@ import com.jogamp.opengl.GLContext;
 
 public class Shader {
 
+	private static boolean SHADER_DEBUG_MODE = false;
+	
 	private int program;
 	private int vao;
 	private Map<String, Integer> attributes;
@@ -43,6 +45,9 @@ public class Shader {
 	private Map<String, Integer> uniforms;
 	private Map<String, Integer> uniformTypes;
 
+	private Map<String, Boolean> trackedAttributeErrors;
+	private Map<String, Boolean> trackedUniformErrors;
+	
 	private FloatBuffer matrix2Buffer = Buffers.newDirectFloatBuffer(4);
 	private FloatBuffer matrix3Buffer = Buffers.newDirectFloatBuffer(9);
 	private FloatBuffer matrix4Buffer = Buffers.newDirectFloatBuffer(16);
@@ -150,7 +155,14 @@ public class Shader {
 
 	public int getAttribute(String name) {
 		if (!this.attributes.containsKey(name)) {
-			throw new IllegalArgumentException(String.format("Unknown attribute: '%s'", name));
+			String message = String.format("Unknown attribute: '%s'", name);
+			if(!SHADER_DEBUG_MODE) {
+				throw new IllegalArgumentException(String.format("%s\nTo prevent crashes, call 'Shader.setDebugMode(true);' in your program.", message));
+			} else if(!this.trackedAttributeErrors.containsKey(name)) {
+				System.err.println(message);
+				this.trackedAttributeErrors.put(name, true);
+			}
+			return -1;
 		}
 
 		return this.attributes.get(name);
@@ -165,7 +177,14 @@ public class Shader {
 
 	public int getUniform(String name) {
 		if (!this.uniforms.containsKey(name)) {
-			throw new IllegalArgumentException(String.format("Unknown uniform: '%s'", name));
+			String message = String.format("Unknown uniform: '%s'", name);
+			if(!SHADER_DEBUG_MODE) {
+				throw new IllegalArgumentException(String.format("%s\nTo prevent crashes, call 'Shader.setDebugMode(true);' in your program.", message));
+			} else if(!this.trackedUniformErrors.containsKey(name)) {
+				System.err.println(message);
+				this.trackedUniformErrors.put(name, true);
+			}
+			return -1;
 		}
 
 		return this.uniforms.get(name);
@@ -321,8 +340,9 @@ public class Shader {
 	public void setAttribute(String attributeName, int buffer) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int attribute = getAttribute(attributeName);
+		if(attribute < 0) return;
+		
 		int type = attributeTypes.get(attributeName);
-
 		GLBuffers.checkType(buffer, type);
 
 		int size = GLTypes.typeSize(type);
@@ -342,6 +362,8 @@ public class Shader {
 	public void setUniform(String uniformName, boolean value) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		switch (type) {
@@ -362,6 +384,8 @@ public class Shader {
 	public void setUniform(String uniformName, int value) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		switch (type) {
@@ -386,6 +410,8 @@ public class Shader {
 	public void setUniform(String uniformName, float value) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT) {
@@ -408,8 +434,9 @@ public class Shader {
 	public void setUniform(String uniformName, int[] value) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
-
 		int expectedArgs = GLTypes.typeSize(type);
 
 		if (value.length != expectedArgs) {
@@ -461,8 +488,9 @@ public class Shader {
 	public void setUniform(String uniformName, float[] value) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
-
 		int expectedArgs = GLTypes.typeSize(type);
 
 		if (value.length != expectedArgs) {
@@ -510,6 +538,8 @@ public class Shader {
 	public void setUniform(String uniformName, Vector2f vector) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_VEC2) {
@@ -529,6 +559,8 @@ public class Shader {
 	public void setUniform(String uniformName, Vector3f vector) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_VEC3) {
@@ -548,6 +580,8 @@ public class Shader {
 	public void setUniform(String uniformName, Vector4f vector) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_VEC4) {
@@ -567,6 +601,8 @@ public class Shader {
 	public void setUniform(String uniformName, Matrix2f matrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_MAT2) {
@@ -586,6 +622,8 @@ public class Shader {
 	public void setUniform(String uniformName, Matrix3f matrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_MAT3) {
@@ -605,6 +643,8 @@ public class Shader {
 	public void setUniform(String uniformName, Matrix4f matrix) {
 		GL4 gl = (GL4) GLContext.getCurrentGL();
 		int uniform = getUniform(uniformName);
+		if(uniform < 0) return;
+		
 		int type = uniformTypes.get(uniformName);
 
 		if (type != GL_FLOAT_MAT4) {
@@ -628,6 +668,7 @@ public class Shader {
 
 		this.attributes = new HashMap<String, Integer>();
 		this.attributeTypes = new HashMap<String, Integer>();
+		this.trackedAttributeErrors = new HashMap<String, Boolean>();
 
 		int[] iBuff = new int[1];
 		gl.glGetProgramiv(this.program, GL_ACTIVE_ATTRIBUTES, iBuff, 0);
@@ -660,6 +701,7 @@ public class Shader {
 
 		this.uniforms = new HashMap<String, Integer>();
 		this.uniformTypes = new HashMap<String, Integer>();
+		this.trackedUniformErrors = new HashMap<String, Boolean>();
 
 		int[] iBuff = new int[1];
 		gl.glGetProgramiv(this.program, GL_ACTIVE_UNIFORMS, iBuff, 0);
@@ -763,6 +805,15 @@ public class Shader {
 		return shader;
 	}
 
+	/**
+	 * Enables/disables debug mode which will determine if missing uniform/attributes
+	 * will throw an error or just print a message.
+	 * @param enabled Whether debug mode is enabled or disabled
+	 */
+	public static void setDebugMode(boolean enabled) {
+		SHADER_DEBUG_MODE = enabled;
+	}
+	
 	/**
 	 * Turn a shader type constant into a descriptive string.
 	 * 

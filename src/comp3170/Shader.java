@@ -157,7 +157,7 @@ public class Shader {
 		if (!this.attributes.containsKey(name)) {
 			String message = String.format("Unknown attribute: '%s'", name);
 			if(!SHADER_DEBUG_MODE) {
-				throw new IllegalArgumentException(String.format("%s\n", message));
+				throw new IllegalArgumentException(message);
 			} else if(!this.trackedAttributeErrors.containsKey(name)) {
 				System.err.println(message);
 				this.trackedAttributeErrors.put(name, true);
@@ -179,7 +179,7 @@ public class Shader {
 		if (!this.uniforms.containsKey(name)) {
 			String message = String.format("Unknown uniform: '%s'", name);
 			if(!SHADER_DEBUG_MODE) {
-				throw new IllegalArgumentException(String.format("%s\nTo prevent crashes, call 'Shader.setDebugMode(true);' in your program.", message));
+				throw new IllegalArgumentException(message);
 			} else if(!this.trackedUniformErrors.containsKey(name)) {
 				System.err.println(message);
 				this.trackedUniformErrors.put(name, true);

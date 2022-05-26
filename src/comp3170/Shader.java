@@ -394,6 +394,7 @@ public class Shader {
 			break;
 		case GL_INT:
 		case GL_SAMPLER_2D:
+		case GL_SAMPLER_CUBE:
 			gl.glUniform1i(uniform, value);
 			break;			
 		default:
@@ -771,6 +772,7 @@ public class Shader {
 		String[] source = readSource(sourceFile);
 
 		int shader = gl.glCreateShader(type);
+		GLException.checkGLErrors();
 		gl.glShaderSource(shader, source.length, source, null, 0);
 		gl.glCompileShader(shader);
 		GLException.checkGLErrors();
